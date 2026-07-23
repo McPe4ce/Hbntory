@@ -7,19 +7,19 @@ classDiagram
     note "Hbntory class Diagram"
 
     class Basemodel {
-        +int uuid
-        +time created_at
-        +time updated_at
+        +str id
+        +datetime created_at
+        +datetime updated_at
         +save()
     }
 
     class User {
         +str email
         -str password_hash
-        +int branch_id
+        +str branch_id
         +bool is_admin
-        -bool is_active
-        -time deleted_at
+        +bool is_active
+        +datetime deleted_at
         +set_password(raw_password)
         +verify_password(raw_password)
         +deactivate()
@@ -30,10 +30,11 @@ classDiagram
     }
 
     class Stock {
-        +int product_id
-        -int quantity
-        +int branch_id
-        +update_quantity(amount)
+        +str product_id
+        +int quantity
+        +str branch_id
+        +add_stock(amount) 
+        +remove_stock(amount)
         +consult_stock()
     }
 
@@ -41,8 +42,8 @@ classDiagram
     Basemodel <|-- Branch
     Basemodel <|-- Stock
 
-    Branch "1" --> "many" User : has
-    Branch "1" --> "many" Stock : has
+    Branch "1" --> "*" User : has
+    Branch "1" --> "*" Stock : has
 ```
 
 ## Service Diagram (system architecture)
