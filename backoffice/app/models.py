@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
+from app.extensions import db
 
 
 class BaseModel():
@@ -13,8 +14,8 @@ class BaseModel():
     def save(self):
         """Save method used in other classes to add a timestamps and in the db"""
         self.updated_at = datetime.now()
-        # db.session.add(self)
-        #db.session.commit()
+        db.session.add(self)
+        db.session.commit()
 
 
 class User(BaseModel):
