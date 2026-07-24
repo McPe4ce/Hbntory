@@ -1,17 +1,37 @@
+"""Route guards for the backoffice API.
+
+Provides two decorators that authenticate requests via the JWT stored in the
+``access_token`` cookie:
+
+Permissions are never read from the token itself — only ``user_id`` is — so
+authorization always reflects the current database state.
+"""
+
 from app.models import User
 from functools import wraps
-from flask import session, abort, redirect, url_for
+from flask import abort, request, current_app
 from app.extensions import db
+import jwt
+
+
+def _user_id_from_token():
+    """Reads and verifes the JWT from the "access_token" cookie and returns user_id"""
+    token = request.cookies.get("access_token")
+    if token is None:
+        abort(401)
+
+    try:
+        payload = jwt.decode(token, current_app.config["SECRET_KEY"], algorithms=["HS256"])
+    except jwt.InvalidTokenError:
+        abort(401)
+    return payload["user_id"]
 
 
 def login_required(func):
-
+    """Allow the route only if the request carries a valid, unexpired token."""
     @wraps(func)
     def wrapped(*args, **kwargs):
-        """Checkpoint run on every request: routes if user is logged in
-        And returns the Checkpoint at the end"""
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
+        _user_id_from_token()
         return func(*args, **kwargs)
     return wrapped
 
@@ -20,10 +40,8 @@ def admin_required(func):
     """Checks if the logged in user is an admin and still exists"""
     @wraps(func)
     def wrapped(*args, **kwargs):
-        if "user_id" not in session:
-            return redirect(url_for("auth.login"))
-
-        user = db.session.get(User, session["user_id"])
+        user_id = _user_id_from_token()
+        user = db.session.get(User, user_id)
         if user is None or not user.is_admin or not user.is_active:
             abort(403)
         return func(*args, **kwargs)
