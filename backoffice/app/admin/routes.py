@@ -36,11 +36,18 @@ def create_user():
         return jsonify({"error": "Password is too weak"}), 400
 
     user = User(email, branch_id, is_admin=False)
-
     user.set_password(password)
+
     try:
         user.save()
     except IntegrityError:
         db.session.rollback()
         return jsonify({"error": "email already exists"}), 409
     return jsonify(_user_json(user)), 201
+
+
+@admin_bp.route("/users", methods=["GET"])
+@admin_required
+def list_users():
+    users = db.session.execute(db.select(User)).scalars().all()
+    return jsonify([_user_json(user) for user in users]), 200
