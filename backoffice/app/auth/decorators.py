@@ -9,7 +9,7 @@ authorization always reflects the current database state.
 
 from app.models import User
 from functools import wraps
-from flask import abort, request, current_app
+from flask import abort, request, current_app, g
 from app.extensions import db
 import jwt
 
@@ -35,6 +35,7 @@ def login_required(func):
         user = db.session.get(User, user_id)
         if user is None or not user.is_active:
             return abort(403)
+        g.current_user = user
         return func(*args, **kwargs)
     return wrapped
 
@@ -47,6 +48,7 @@ def admin_required(func):
         user = db.session.get(User, user_id)
         if user is None or not user.is_admin or not user.is_active:
             abort(403)
+        g.current_user = user
         return func(*args, **kwargs)
     return wrapped
 
@@ -60,5 +62,6 @@ def common_user_required(func):
 
         if user is None or user.is_admin or not user.is_active:
             abort(403)
+        g.current_user = user
         return func(*args, **kwargs)
     return wrapped
