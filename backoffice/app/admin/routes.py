@@ -17,6 +17,11 @@ def _user_json(user):
             "is_active": user.is_active
         }
 
+def weak_password(password):
+    if not password:
+        return True
+    return (len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password))
+
 
 @admin_bp.route("/users", methods=["POST"])
 @admin_required
@@ -32,9 +37,9 @@ def create_user():
     if not _EMAIL_RE.match(email):
         return jsonify({"error": "Email invalid format"}), 400
 
-    if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"[a-z]", password) or not re.search(r"\d", password) or not re.search(r"[^A-Za-z0-9]", password):
+    if weak_password(password):
         return jsonify({"error": "Password is too weak"}), 400
-
+    
     user = User(email, branch_id, is_admin=False)
     user.set_password(password)
 
@@ -66,7 +71,7 @@ def delete_user(user_id):
 
 @admin_bp.route("/users/<user_id>", methods=["PATCH"])
 @admin_required
-def give_branch(user_id):
+def update_user(user_id):
     user = db.session.get(User, user_id)
     data = request.get_json(silent=True) or {}
 
@@ -79,8 +84,15 @@ def give_branch(user_id):
             return jsonify({"error": "branch_id cant be empty"}), 400
         
         if db.session.get(Branch, new_branch_id) is None:
-            return jsonify({"error": "branch not found"})
+            return jsonify({"error": "branch not found"}), 400
         user.branch_id = new_branch_id
+
+    if "password" in data:
+        new_password = data["password"]
+        if weak_password(new_password):
+            return jsonify({"error": "Password is too weak"}), 400
+        user.set_password(new_password)
+        
     user.save()
     return jsonify(_user_json(user)), 200
 

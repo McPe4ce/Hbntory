@@ -31,7 +31,10 @@ def login_required(func):
     """Allow the route only if the request carries a valid, unexpired token."""
     @wraps(func)
     def wrapped(*args, **kwargs):
-        _user_id_from_token()
+        user_id = _user_id_from_token()
+        user = db.session.get(User, user_id)
+        if user is None or not user.is_active:
+            return abort(403)
         return func(*args, **kwargs)
     return wrapped
 
@@ -43,6 +46,19 @@ def admin_required(func):
         user_id = _user_id_from_token()
         user = db.session.get(User, user_id)
         if user is None or not user.is_admin or not user.is_active:
+            abort(403)
+        return func(*args, **kwargs)
+    return wrapped
+
+
+def common_user_required(func):
+    """Checks if the user is not an admin and still exists, for stocks modifications"""
+    @wraps(func)
+    def wrapped(*args, **kwargs):
+        user_id = _user_id_from_token()
+        user = db.session.get(User, user_id)
+
+        if user is None or user.is_admin or not user.is_active:
             abort(403)
         return func(*args, **kwargs)
     return wrapped
