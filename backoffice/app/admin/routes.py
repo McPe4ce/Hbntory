@@ -1,4 +1,4 @@
-from app.models import User
+from app.models import User, Branch
 from flask import Blueprint, request, jsonify
 from app.auth.decorators import admin_required
 import re
@@ -51,3 +51,37 @@ def create_user():
 def list_users():
     users = db.session.execute(db.select(User)).scalars().all()
     return jsonify([_user_json(user) for user in users]), 200
+
+
+@admin_bp.route("/users/<user_id>", methods=["DELETE"])
+@admin_required
+def delete_user(user_id):
+    user = db.session.get(User, user_id)
+
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+    user.deactivate()
+    return jsonify(_user_json(user)), 200
+
+
+@admin_bp.route("/users/<user_id>", methods=["PATCH"])
+@admin_required
+def give_branch(user_id):
+    user = db.session.get(User, user_id)
+    data = request.get_json(silent=True) or {}
+
+    if user is None:
+        return jsonify({"error": "User not found"}), 404
+
+    if "branch_id" in data:
+        new_branch_id = data["branch_id"]
+        if not new_branch_id:
+            return jsonify({"error": "branch_id cant be empty"}), 400
+        
+        if db.session.get(Branch, new_branch_id) is None:
+            return jsonify({"error": "branch not found"})
+        user.branch_id = new_branch_id
+    user.save()
+    return jsonify(_user_json(user)), 200
+
+    
