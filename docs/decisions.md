@@ -48,6 +48,52 @@
   session. A JWT cannot be revoked before it expires — which is exactly why
   permissions are kept out of the token and read from the DB instead.
 
+## Decision 5 — Password storage
+
+**Options:** plain SHA256 · or · a dedicated password hash (scrypt / bcrypt / Argon2)
+
+- **Chosen:** scrypt, via Werkzeug's `generate_password_hash` default. Routes only
+  ever go through `User.set_password()` / `User.verify_password()`, so a plain-text
+  password never reaches the DB — including in `seed.py`.
+- **Benefit:** scrypt is deliberately slow and memory-hard, and salts every hash
+  automatically. SHA256 is the opposite: built for speed, so a GPU can guess
+  billions of passwords per second against a stolen table, and being unsalted, one
+  precomputed rainbow table cracks every user at once. The memory cost is also what
+  scrypt adds over bcrypt — it removes the GPU's parallelism advantage.
+- **Trade-off / limitation:** Every login genuinely costs CPU and memory (that's the
+  point, but it isn't free). We take Werkzeug's default cost parameters rather than
+  tuning them, and depend on its hash format — acceptable, Flask ships it anyway.
+
+## Decision 6 — Where authorization is enforced
+
+**Options:** hide the controls a role shouldn't see · or · enforce in backend route logic
+
+- **Chosen:** Backend, via three decorators in `auth/decorators.py` —
+  `login_required` (any active user), `admin_required` (active admins),
+  `common_user_required` (active non-admins; this is what keeps the admin out of
+  stock). Each decodes the JWT for a `user_id`, re-loads the user from the DB, and
+  checks from there.
+- **Benefit:** Hiding a button only changes what the browser draws — the endpoint is
+  still callable with `curl`. Enforcing server-side also means permissions reflect
+  current DB state rather than what was true at login, so a soft-delete takes effect
+  on the user's next request. This is why the token carries `user_id` and `exp` only,
+  never the role.
+- **Trade-off / limitation:** One extra DB read per request — negligible here, and
+  it's what buys instant revocation. Decorators cover *role* but not *scope*: they
+  can't know which branch a request targets, so `user.branch_id == stock.branch_id`
+  is checked inside the stock routes themselves.
+
+---
+
+### Known limitations
+
+- **An admin can deactivate their own account.** `DELETE /admin/users/<id>` has no
+  self-target check, and with exactly one admin that locks the team out of user
+  management. Accepted deliberately — the spec requires no second admin and no
+  recovery flow. Re-running `seed.py` restores access.
+- **A token stays valid until it expires.** No logout-everywhere or blacklist;
+  impact limited by keeping permissions out of the token (Decision 4).
+
 ---
 
 ### Summary
@@ -58,3 +104,5 @@
 | Client Web Interface | REST | Independent questions; no persistent connection | No streaming / real-time push |
 | AI Query ↔ MCP | *TBD* | *TBD* | *TBD* |
 | Auth (Backoffice) | JWT in cookie (`{user_id, exp}`) | Standard signed token + real expiry; DB still checked | Extra dep + token lifecycle; no pre-expiry revocation |
+| Password storage | scrypt (Werkzeug default) | Slow, memory-hard, auto-salted — unlike fast unsalted SHA256 | Real CPU/memory cost per login; untuned defaults |
+| Authorization | Backend decorators, role read from DB | Safe against direct API calls; revocation is instant | One DB read per request; scope still checked in-route |
