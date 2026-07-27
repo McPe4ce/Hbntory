@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HBntory - Ask about our products</title>
+    <meta name="description" content="Ask a question about our products and our stock.">
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Raleway:700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container">
+        <h1 class="header-title">HBntory</h1>
+        <p class="header-tagline">Product &amp; stock assistant</p>
+      </div>
+    </header>
+
+    <main class="container">
+      <section class="section">
+        <h2 class="visually-hidden">Conversation</h2>
+
+        <!-- The questions and the answers are added here by app.js -->
+        <div class="conversation" id="conversation">
+          <p class="message message-bot">
+            Hello! Ask me about a product, or about what a branch has in stock.
+          </p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2 class="section-tagline">Examples</h2>
+
+        <div class="examples" id="examples">
+          <button type="button" class="example">Give me details about HB-MON-2101</button>
+          <button type="button" class="example">Which branch has stock of HB-LGT-1801?</button>
+          <button type="button" class="example">What products can I find in Branch Thonon?</button>
+          <button type="button" class="example">I want to buy 3 units of HB-MON-2101 and 2 units of HB-LGT-1801</button>
+        </div>
+      </section>
+
+      <form class="ask-form" id="ask-form">
+        <label class="visually-hidden" for="question">Your question</label>
+        <input class="ask-input" id="question" type="text" maxlength="500"
+               placeholder="Write your question here">
+        <button class="button" id="submit" type="submit">Ask</button>
+      </form>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

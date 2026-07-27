@@ -1,0 +1,209 @@
+/* styles.css - Client Web Interface */
+
+@import url("https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css");
+
+:root {
+  --color-primary: #d73953;
+  --color-black: #000000;
+  --color-dark: #0d0d10;
+  --color-dark-light: #1c1c22;
+  --color-grey: #2b2b33;
+  --color-light-grey: #9a9aa4;
+  --color-white: #ececee;
+  --text-color: var(--color-white);
+  --font-family-base: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-family-title: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-size-small: 1.2rem;
+  --font-size-medium: 1.6rem;
+  --font-size-large: 1.8rem;
+  --font-size-xx-large: 4.8rem;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+  --transition-duration: .3s;
+  --transition-cubic-bezier: cubic-bezier(0.17, 0.67, 0, 1.01);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  /* Deep black at the top, a bit lighter at the bottom */
+  background-color: var(--color-dark);
+  background-image: linear-gradient(to bottom, var(--color-black), var(--color-dark-light));
+  background-attachment: fixed;
+  color: var(--text-color);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-base);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-family-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.visually-hidden {
+  display: none;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 70rem;
+  padding: 0 2rem;
+}
+
+/* Header */
+
+.header {
+  background-color: var(--color-black);
+  padding: 4rem 0 3rem;
+}
+
+.header-title {
+  font-size: var(--font-size-xx-large);
+  margin: 0;
+}
+
+.header-tagline {
+  color: var(--color-primary);
+  font-family: var(--font-family-title);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Conversation */
+
+.section {
+  padding: 3rem 0 0;
+}
+
+.conversation {
+  background-image: linear-gradient(to bottom, var(--color-dark), var(--color-dark-light));
+  border: .1rem solid var(--color-grey);
+  border-radius: .5rem;
+  height: 36rem;
+  overflow-y: auto;
+  padding: 2rem;
+}
+
+.message {
+  border-radius: .5rem;
+  margin: 0 0 1rem;
+  padding: 1rem 1.5rem;
+  /* Keeps the line breaks we put in the answers */
+  white-space: pre-wrap;
+}
+
+.message-user {
+  background-color: var(--color-primary);
+  margin-left: 6rem;
+}
+
+.message-bot {
+  background-color: var(--color-grey);
+}
+
+.message-waiting {
+  color: var(--color-light-grey);
+  font-style: italic;
+}
+
+.message-error {
+  border: .1rem solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Examples */
+
+.section-tagline {
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  letter-spacing: .1rem;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+}
+
+.example {
+  background-color: transparent;
+  border: .1rem solid var(--color-grey);
+  border-radius: 2rem;
+  color: var(--color-light-grey);
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-small);
+  margin: 0 .5rem .5rem 0;
+  padding: .8rem 1.6rem;
+  transition: var(--transition-duration) var(--transition-cubic-bezier);
+}
+
+.example:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Form */
+
+.ask-form {
+  display: flex;
+  padding: 3rem 0 5rem;
+}
+
+.ask-input {
+  background-color: var(--color-dark);
+  border: .1rem solid var(--color-grey);
+  border-radius: .5rem;
+  color: var(--text-color);
+  flex: 1;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-medium);
+  margin-right: 1rem;
+  padding: 1.4rem 1.6rem;
+}
+
+.ask-input::placeholder {
+  color: var(--color-light-grey);
+}
+
+.ask-input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+.button {
+  background-color: var(--color-primary);
+  border: .2rem solid var(--color-primary);
+  border-radius: .5rem;
+  color: var(--color-white);
+  cursor: pointer;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-bold);
+  padding: 0 3rem;
+  transition-duration: var(--transition-duration);
+  transition-property: color, background-color;
+}
+
+.button:hover {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.button:disabled {
+  background-color: var(--color-grey);
+  border-color: var(--color-grey);
+  color: var(--color-light-grey);
+  cursor: not-allowed;
+}
