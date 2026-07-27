@@ -34,18 +34,18 @@ def seed():
  
         # --- Admin (branch_id = None : il ne gère pas de stock) ---
         admin = User(email="admin@company.com", is_admin=True, branch_id=None)
-        admin.set_password("ChangeMe123!")  # mot de passe temporaire, à changer après le premier login
+        admin.set_password("Hbnt0ry!Adm1n")  # mot de passe temporaire, à changer après le premier login
  
         # --- Users communs, un par branche ---
         user1 = User(
             email="employe.thonon@company.com", is_admin=False, branch_id=branch1.id
         )
-        user1.set_password("ChangeMe123!")
+        user1.set_password("Th0non!Stock9")
  
         user2 = User(
             email="employe.geneve@company.com", is_admin=False, branch_id=branch2.id
         )
-        user2.set_password("ChangeMe123!")
+        user2.set_password("Geneve!Stock7")
  
         db.session.add_all([admin, user1, user2])
         db.session.commit()
