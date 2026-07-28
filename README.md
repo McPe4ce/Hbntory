@@ -437,12 +437,73 @@ curl -s -b admin.txt -X POST $B/admin/users -H 'Content-Type: application/json' 
 # soft-deleted user can no longer log in                     -> 401
 ```
 
-**Product MCP Server**
+**Product MCP Server — REST bridge**
 
 ```bash
 curl -s http://localhost:8001/products                    # -> 200, full catalog
 curl -s http://localhost:8001/products/HB-LAP-1001        # -> 200, details
 curl -s http://localhost:8001/products/NOPE-9999          # -> 404
+```
+
+**Product MCP Server — MCP tools**
+
+The REST checks above exercise `product_api_client.py` through the REST wrapper.
+The MCP tool layer is a separate surface and is tested on its own, from
+`product_mcp_server/` with the Product API reachable on `:8000`.
+
+Tool definitions, as an MCP client sees them — no Product API needed:
+
+```bash
+fastmcp list server.py
+# -> Tools (2)
+#      list_products(include_discontinued: bool = False) -> dict
+#      get_product_details(sku: str) -> dict
+```
+
+Calling the tools. `PRODUCT_API_BASE_URL` is read at import time, and the
+`fastmcp call` CLI does not propagate it to the server process, so the tools are
+called through an in-memory client instead:
+
+```bash
+PRODUCT_API_BASE_URL=http://localhost:8000 python - <<'PY'
+import asyncio
+from fastmcp import Client
+from server import mcp
+
+async def main():
+    async with Client(mcp) as c:
+        r = await c.call_tool("list_products", {})
+        print("list_products         ->", r.data["success"], r.data["count"])
+        r = await c.call_tool("list_products", {"include_discontinued": True})
+        print("  with discontinued   ->", r.data["count"])
+        r = await c.call_tool("get_product_details", {"sku": "HB-LAP-1001"})
+        print("get_product_details   ->", r.data["product"]["name"])
+        r = await c.call_tool("get_product_details", {"sku": "NOPE-9999"})
+        print("unknown sku           ->", r.data)
+
+asyncio.run(main())
+PY
+```
+
+Expected output:
+
+```
+list_products         -> True 3
+  with discontinued   -> 4
+get_product_details   -> Business Laptop 14
+unknown sku           -> {'success': False, 'code': 'not_found',
+                          'error': 'No product found with SKU NOPE-9999'}
+```
+
+Connection failure — rerun the same block with `PRODUCT_API_BASE_URL` pointing at
+a port with nothing on it. Both tools return
+`{'success': False, 'error': 'The Product API is not responding.'}` rather than
+raising, so an MCP client always receives a usable result:
+
+```bash
+PRODUCT_API_BASE_URL=http://localhost:9 python - <<'PY'
+... same script as above ...
+PY
 ```
 
 **Degraded behaviour**
