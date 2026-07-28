@@ -523,13 +523,27 @@ docker compose start product_mcp_server
   header;
 - adding and removing stock updates the table, and removing more than available
   shows the error returned by the API;
+- the stock form offers a product dropdown fed by `GET /products`, and the stock
+  table shows product names — both coming from the external catalog, never the DB;
 - creating a user with a weak password or a duplicate email shows the error;
+- `Edit` on a user opens a form that changes their branch, or their password when
+  one is typed, and leaves the password untouched when the field is left empty;
 - deactivating a user moves them to `Deactivated` and they can no longer sign in;
 - logging out returns to the sign-in view.
 
 **Client Web Interface** — open <http://localhost:8080> and click each of the
 four example buttons. Each returns a coherent answer built from live catalog
 data and local stock. An unrecognised question returns the help message.
+
+**Automated tests** — the query engine and the public endpoint are covered by a
+pytest suite. It uses a database in memory and a fixed catalog, so no service
+needs to be running:
+
+```bash
+cd backoffice
+pip install -r requirements-dev.txt
+python -m pytest tests/ -q                                # -> 16 passed
+```
 
 ---
 

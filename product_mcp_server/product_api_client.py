@@ -10,6 +10,46 @@ NO_RESPONSE = {"success": False, "error": "The Product API is not responding."}
 API_ERROR = {"success": False, "error": "The Product API returned an error."}
 
 
+def read_json(response):
+    """Read the JSON of a response, or None if there is no JSON in it."""
+
+    try:
+        return response.json()
+    except ValueError:
+        return None
+
+
+def summary(p):
+    """Keep the fields we show in a list.
+
+    We read every field with .get(): if the real Product API names one
+    differently we return it empty instead of crashing with a 500.
+    """
+
+    return {
+        "sku": p.get("sku"),
+        "name": p.get("name"),
+        "category": p.get("category"),
+        "brand": p.get("brand"),
+        "unit_price": p.get("unit_price"),
+        "currency": p.get("currency"),
+        "discontinued": p.get("discontinued"),
+    }
+
+
+def details(p):
+    """Keep the fields we show for one product."""
+
+    supplier = p.get("supplier") or {}
+
+    product = summary(p)
+    product["description"] = p.get("description")
+    product["supplier_name"] = supplier.get("name")
+    product["supplier_country"] = supplier.get("country")
+
+    return product
+
+
 def list_products(include_discontinued: bool = False) -> dict:
     """List the products available in the external catalog."""
 
@@ -31,22 +71,18 @@ def list_products(include_discontinued: bool = False) -> dict:
         if response.status_code != 200:
             return API_ERROR
 
-        data = response.json()
+        data = read_json(response)
+        if data is None:
+            return API_ERROR
 
-        for p in data["results"]:
-            products.append({
-                "sku": p["sku"],
-                "name": p["name"],
-                "category": p["category"],
-                "brand": p["brand"],
-                "unit_price": p["unit_price"],
-                "currency": p["currency"],
-                "discontinued": p["discontinued"],
-            })
+        results = data.get("results", [])
 
-        offset += len(data["results"])
+        for p in results:
+            products.append(summary(p))
 
-        if not data["results"] or offset >= data["count"]:
+        offset += len(results)
+
+        if not results or offset >= data.get("count", 0):
             break
 
     return {"success": True, "count": len(products), "products": products}
@@ -70,20 +106,8 @@ def get_product_details(sku: str) -> dict:
     if response.status_code != 200:
         return API_ERROR
 
-    p = response.json()
+    p = read_json(response)
+    if p is None:
+        return API_ERROR
 
-    return {
-        "success": True,
-        "product": {
-            "sku": p["sku"],
-            "name": p["name"],
-            "description": p["description"],
-            "category": p["category"],
-            "brand": p["brand"],
-            "unit_price": p["unit_price"],
-            "currency": p["currency"],
-            "discontinued": p["discontinued"],
-            "supplier_name": p["supplier"]["name"],
-            "supplier_country": p["supplier"]["country"],
-        },
-    }
+    return {"success": True, "product": details(p)}

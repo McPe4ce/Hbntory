@@ -11,15 +11,35 @@ import requests
 BASE_URL = os.environ.get("PRODUCT_MCP_URL", "http://localhost:8001")
 
 
-def list_products():
-    """Return the list of all products, or None if it did not work."""
+def read_answer(response):
+    """Read the JSON of an answer, or None if it is not a good answer."""
     try:
-        response = requests.get(BASE_URL + "/products", timeout=10)
+        data = response.json()
+    except ValueError:
+        # Not JSON at all (a proxy error page, for example)
+        return None
+
+    if not data.get("success"):
+        return None
+
+    return data
+
+
+def list_products(include_discontinued=False):
+    """Return the list of all products, or None if it did not work.
+
+    Discontinued products are hidden by default, but a branch can still have
+    some in stock, so we can ask for them with include_discontinued.
+    """
+    params = {"include_discontinued": str(include_discontinued).lower()}
+
+    try:
+        response = requests.get(BASE_URL + "/products", params=params, timeout=10)
     except requests.exceptions.RequestException:
         return None
 
-    data = response.json()
-    if not data["success"]:
+    data = read_answer(response)
+    if data is None:
         return None
 
     return data["products"]
@@ -32,8 +52,8 @@ def get_product_details(sku):
     except requests.exceptions.RequestException:
         return None
 
-    data = response.json()
-    if not data["success"]:
+    data = read_answer(response)
+    if data is None:
         return None
 
     return data["product"]

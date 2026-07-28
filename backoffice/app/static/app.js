@@ -123,6 +123,7 @@ async function start() {
   } else {
     el("stock-branch").textContent = user.branch_name;
     show("view-stock");
+    await loadProducts();
     await loadStock();
   }
 }
@@ -149,13 +150,43 @@ el("logout").addEventListener("click", () => {
   });
 });
 
+/* ---------- Products ---------- */
+
+/* The catalog, so the form offers a choice instead of asking for an
+   identifier, and the table shows a name instead of a bare SKU.
+   It comes from the Product API through the MCP server — never from our DB. */
+let products = [];
+
+async function loadProducts() {
+  try {
+    products = await api("GET", "/products");
+  } catch (error) {
+    // Catalog unreachable: the stock table still works, with bare SKUs.
+    products = [];
+    notify(error.message, "error");
+  }
+
+  el("stock-product").replaceChildren(
+    ...products.map((product) => {
+      const option = tag("option", productLabel(product.sku));
+      option.value = product.sku;
+      return option;
+    })
+  );
+}
+
+function productLabel(sku) {
+  const product = products.find((p) => p.sku === sku);
+  return product ? product.name + " — " + sku : sku;
+}
+
 /* ---------- Stock ---------- */
 
 async function loadStock() {
   const stocks = await api("GET", "/stock");
 
   el("stock-rows").replaceChildren(
-    ...stocks.map((stock) => row(stock.product_id, String(stock.quantity)))
+    ...stocks.map((stock) => row(productLabel(stock.product_id), String(stock.quantity)))
   );
   el("stock-empty").classList.toggle("hidden", stocks.length > 0);
 }
@@ -185,7 +216,12 @@ let branches = [];
 async function loadBranches() {
   branches = await api("GET", "/admin/branches");
 
-  el("user-branch").replaceChildren(
+  fillBranches("user-branch");
+  fillBranches("user-edit-branch");
+}
+
+function fillBranches(selectId) {
+  el(selectId).replaceChildren(
     ...branches.map((branch) => {
       const option = tag("option", branch.branch_name);
       option.value = branch.id;
@@ -216,6 +252,35 @@ function deactivateButton(user) {
   return button;
 }
 
+/* Fills the edit form with one user and shows it. */
+function editUser(user) {
+  el("user-edit-who").textContent = "Editing " + user.email;
+  el("user-edit-branch").value = user.branch_id;
+  el("user-edit-password").value = "";
+  el("user-edit-form").dataset.userId = user.id;
+  el("user-edit-form").classList.remove("hidden");
+  el("user-edit-empty").classList.add("hidden");
+}
+
+function closeEdit() {
+  el("user-edit-form").classList.add("hidden");
+  el("user-edit-empty").classList.remove("hidden");
+}
+
+function editButton(user) {
+  const button = tag("button", "Edit", "link");
+  button.type = "button";
+  button.addEventListener("click", () => editUser(user));
+  return button;
+}
+
+/* Both actions of a row, in the same cell. */
+function userActions(user) {
+  const actions = tag("span", "", "actions");
+  actions.append(editButton(user), deactivateButton(user));
+  return actions;
+}
+
 async function loadUsers() {
   const users = await api("GET", "/admin/users");
 
@@ -225,7 +290,7 @@ async function loadUsers() {
       user.is_admin ? "—" : branchName(user.branch_id),
       user.is_admin ? "Admin" : "Common",
       user.is_active ? "Active" : tag("span", "Deactivated", "muted"),
-      user.is_active && !user.is_admin ? deactivateButton(user) : ""
+      user.is_active && !user.is_admin ? userActions(user) : ""
     ))
   );
 }
@@ -243,6 +308,27 @@ el("user-form").addEventListener("submit", (event) => {
     await loadUsers();
   }, "User created.");
 });
+
+el("user-edit-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const changes = { branch_id: el("user-edit-branch").value };
+  const password = el("user-edit-password").value;
+
+  // The password is only sent when one was typed, so saving a branch change
+  // on its own never touches the password.
+  if (password) {
+    changes.password = password;
+  }
+
+  run(async () => {
+    await api("PATCH", "/admin/users/" + el("user-edit-form").dataset.userId, changes);
+    closeEdit();
+    await loadUsers();
+  }, "User updated.");
+});
+
+el("user-edit-cancel").addEventListener("click", closeEdit);
 
 /* ---------- Go ---------- */
 
