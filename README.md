@@ -83,7 +83,8 @@ Hbntory/
 │       ├── admin/              # user management (admin only)
 │       ├── stock/              # add / remove / consult (common users only)
 │       ├── products/           # mcp_client.py — talks to the MCP server
-│       └── public/             # unauthenticated /api/query endpoint
+│       ├── public/             # unauthenticated /api/query endpoint
+        └── static/             # backoffice ui
 ├── product_mcp_server/
 │   ├── Dockerfile
 │   ├── server.py               # FastMCP tools
