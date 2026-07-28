@@ -56,7 +56,8 @@
 
         <h3 class="section-tagline">Add or remove</h3>
         <form class="form form-inline" id="stock-form">
-          <input class="input" type="text" id="stock-product" placeholder="Product identifier" required>
+          <!-- Filled in by app.js from GET /products -->
+          <select class="input" id="stock-product" required></select>
           <input class="input input-small" type="number" id="stock-quantity" min="1" value="1" required>
           <button class="button" type="submit" id="stock-add">Add</button>
           <button class="button button-ghost" type="button" id="stock-remove">Remove</button>
@@ -87,6 +88,25 @@
           <select class="input" id="user-branch" required></select>
 
           <button class="button" type="submit">Create user</button>
+        </form>
+
+        <h3 class="section-tagline">Edit a user</h3>
+        <p class="empty" id="user-edit-empty">Pick "Edit" on a user above to change their branch or their password.</p>
+
+        <!-- Shown by app.js when a user is picked -->
+        <form class="form hidden" id="user-edit-form">
+          <p class="hint" id="user-edit-who"></p>
+
+          <label class="label" for="user-edit-branch">Branch</label>
+          <select class="input" id="user-edit-branch" required></select>
+
+          <label class="label" for="user-edit-password">New password</label>
+          <input class="input" type="password" id="user-edit-password" placeholder="Leave empty to keep the current one">
+
+          <div class="form-actions">
+            <button class="button" type="submit">Save changes</button>
+            <button class="button button-ghost" type="button" id="user-edit-cancel">Cancel</button>
+          </div>
         </form>
       </section>
     </main>

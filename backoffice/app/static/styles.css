@@ -281,6 +281,18 @@ h3 {
   color: var(--color-white);
 }
 
+/* Two buttons side by side, inside a column form */
+.form-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+/* The Edit / Deactivate pair in a table row */
+.actions {
+  display: flex;
+  gap: 1.5rem;
+}
+
 .link {
   background: none;
   border: none;

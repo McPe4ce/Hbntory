@@ -30,13 +30,16 @@ def query():
     data = request.get_json(silent=True) or {}
     question = data.get("question")
 
-    if not question or not isinstance(question, str):
+    # .strip() so that a question made only of spaces is refused too
+    if not isinstance(question, str) or not question.strip():
         return jsonify({"error": "Please write a question."}), 400
 
     if len(question) > 500:
         return jsonify({"error": "Your question is too long (500 characters max)."}), 400
 
-    catalog = mcp_client.list_products()
+    # A branch can still have stock of a discontinued product, so we need
+    # them too to be able to answer about it.
+    catalog = mcp_client.list_products(include_discontinued=True)
     if catalog is None:
         return jsonify({"error": "The product catalog is not available right now."}), 503
 
