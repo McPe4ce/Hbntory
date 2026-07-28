@@ -39,6 +39,9 @@ def create_user():
 
     if weak_password(password):
         return jsonify({"error": "Password is too weak"}), 400
+
+    if db.session.get(Branch, branch_id) is None:
+        return jsonify({"error": "branch not found"}), 400
     
     user = User(email, branch_id, is_admin=False)
     user.set_password(password)
