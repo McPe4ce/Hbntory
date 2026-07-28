@@ -7,7 +7,7 @@ from app.stock.routes import stock_bp
 from app.public.routes import public_bp
 
 def create_app():
-    """Creates the app, loads the config and binds it to the DB"""
+    """Creates the app, loads the config routes and binds it to the DB"""
     app = Flask(__name__)
     app.config.from_object(Config)
     db.init_app(app)
