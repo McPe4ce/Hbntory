@@ -21,8 +21,10 @@ async function api(method, path, body) {
     body: body ? JSON.stringify(body) : undefined,
   });
 
-  // Session gone or expired: back to the login screen.
-  if (response.status === 401) {
+  // A 401 means "I don't know who you are" — on any route that is an expired
+  // session, but on the login route itself it is simply wrong credentials, and
+  // there the server's own message is the one to show.
+  if (response.status === 401 && path !== "/auth/login") {
     showLogin();
     throw new Error("Please sign in again.");
   }
