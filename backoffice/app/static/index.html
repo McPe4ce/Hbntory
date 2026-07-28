@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HBntory — Backoffice</title>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Raleway:700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+  </head>
+  <body>
+    <header class="header">
+      <div class="container header-bar">
+        <div>
+          <h1 class="header-title">HBntory</h1>
+          <p class="header-tagline">Backoffice</p>
+        </div>
+        <!-- Filled in by app.js once we know who is logged in -->
+        <div class="session hidden" id="session">
+          <p class="session-user" id="session-user"></p>
+          <p class="session-scope" id="session-scope"></p>
+          <button type="button" class="button button-small" id="logout">Log out</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container">
+      <!-- Any error or confirmation shown to the user goes here -->
+      <p class="notice hidden" id="notice"></p>
+
+      <!-- ============ Login ============ -->
+      <section class="view" id="view-login">
+        <h2 class="section-tagline">Sign in</h2>
+
+        <form class="form" id="login-form">
+          <label class="label" for="login-email">Email</label>
+          <input class="input" type="email" id="login-email" required autocomplete="username">
+
+          <label class="label" for="login-password">Password</label>
+          <input class="input" type="password" id="login-password" required autocomplete="current-password">
+
+          <button class="button" type="submit">Sign in</button>
+        </form>
+      </section>
+
+      <!-- ============ Stock (common users) ============ -->
+      <section class="view hidden" id="view-stock">
+        <h2 class="section-tagline">Stock in <span id="stock-branch"></span></h2>
+
+        <table class="table">
+          <thead>
+            <tr><th>Product</th><th class="right">Quantity</th></tr>
+          </thead>
+          <tbody id="stock-rows"></tbody>
+        </table>
+        <p class="empty hidden" id="stock-empty">No product in stock for this branch yet.</p>
+
+        <h3 class="section-tagline">Add or remove</h3>
+        <form class="form form-inline" id="stock-form">
+          <input class="input" type="text" id="stock-product" placeholder="Product identifier" required>
+          <input class="input input-small" type="number" id="stock-quantity" min="1" value="1" required>
+          <button class="button" type="submit" id="stock-add">Add</button>
+          <button class="button button-ghost" type="button" id="stock-remove">Remove</button>
+        </form>
+      </section>
+
+      <!-- ============ Users (admin) ============ -->
+      <section class="view hidden" id="view-admin">
+        <h2 class="section-tagline">Users</h2>
+
+        <table class="table">
+          <thead>
+            <tr><th>Email</th><th>Branch</th><th>Role</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="user-rows"></tbody>
+        </table>
+
+        <h3 class="section-tagline">Create a user</h3>
+        <form class="form" id="user-form">
+          <label class="label" for="user-email">Email</label>
+          <input class="input" type="email" id="user-email" required>
+
+          <label class="label" for="user-password">Password</label>
+          <input class="input" type="password" id="user-password" required>
+          <p class="hint">At least 8 characters, with an uppercase letter, a lowercase letter, a digit and a symbol.</p>
+
+          <label class="label" for="user-branch">Branch</label>
+          <select class="input" id="user-branch" required></select>
+
+          <button class="button" type="submit">Create user</button>
+        </form>
+      </section>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

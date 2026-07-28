@@ -1,0 +1,293 @@
+/* styles.css - Backoffice interface.
+   Same design language as the Client Web Interface. */
+
+@import url("https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css");
+
+:root {
+  --color-primary: #d73953;
+  --color-black: #000000;
+  --color-dark: #0d0d10;
+  --color-dark-light: #1c1c22;
+  --color-grey: #2b2b33;
+  --color-light-grey: #9a9aa4;
+  --color-white: #ececee;
+  --color-ok: #4caf7d;
+  --text-color: var(--color-white);
+  --font-family-base: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-family-title: "Raleway", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-size-small: 1.2rem;
+  --font-size-medium: 1.6rem;
+  --font-size-large: 1.8rem;
+  --font-size-xx-large: 4.8rem;
+  --font-weight-regular: 400;
+  --font-weight-bold: 700;
+  --line-height-base: 1.5;
+  --transition-duration: .3s;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 62.5%;
+}
+
+body {
+  background-color: var(--color-dark);
+  background-image: linear-gradient(to bottom, var(--color-black), var(--color-dark-light));
+  background-attachment: fixed;
+  color: var(--text-color);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-medium);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-base);
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-family-title);
+  font-weight: var(--font-weight-bold);
+}
+
+.hidden {
+  display: none;
+}
+
+.container {
+  margin: 0 auto;
+  max-width: 76rem;
+  padding: 0 2rem;
+}
+
+/* Header */
+
+.header {
+  background-color: var(--color-black);
+  padding: 3rem 0 2.5rem;
+}
+
+.header-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.header-title {
+  font-size: var(--font-size-xx-large);
+  margin: 0;
+}
+
+.header-tagline {
+  color: var(--color-primary);
+  font-family: var(--font-family-title);
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+/* Who is signed in, and on which branch */
+
+.session {
+  text-align: right;
+}
+
+.session-user {
+  margin: 0;
+}
+
+.session-scope {
+  color: var(--color-primary);
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: .1rem;
+  margin: 0 0 1rem;
+  text-transform: uppercase;
+}
+
+/* Sections */
+
+.view {
+  padding: 3rem 0 5rem;
+}
+
+.section-tagline {
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  letter-spacing: .1rem;
+  margin: 3rem 0 1rem;
+  text-transform: uppercase;
+}
+
+.view > .section-tagline:first-child {
+  margin-top: 0;
+}
+
+/* Notices */
+
+.notice {
+  border-radius: .5rem;
+  margin: 2rem 0 0;
+  padding: 1.2rem 1.6rem;
+}
+
+.notice-error {
+  border: .1rem solid var(--color-primary);
+  color: var(--color-primary);
+}
+
+.notice-ok {
+  border: .1rem solid var(--color-ok);
+  color: var(--color-ok);
+}
+
+/* Tables */
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.table th,
+.table td {
+  border-bottom: .1rem solid var(--color-grey);
+  padding: 1.2rem 1rem;
+  text-align: left;
+}
+
+.table th {
+  color: var(--color-light-grey);
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-small);
+  letter-spacing: .1rem;
+  text-transform: uppercase;
+}
+
+.right,
+/* Quantity column — aligned here rather than by tagging each cell in JS */
+#stock-rows td:last-child {
+  text-align: right;
+}
+
+.muted {
+  color: var(--color-light-grey);
+}
+
+.empty {
+  color: var(--color-light-grey);
+  font-style: italic;
+}
+
+.hint {
+  color: var(--color-light-grey);
+  font-size: var(--font-size-small);
+  margin: -.5rem 0 1rem;
+}
+
+/* Forms */
+
+.form {
+  display: flex;
+  flex-direction: column;
+  max-width: 42rem;
+}
+
+.form-inline {
+  align-items: center;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 1rem;
+  max-width: none;
+}
+
+.label {
+  color: var(--color-light-grey);
+  font-size: var(--font-size-small);
+  margin-bottom: .5rem;
+}
+
+.input {
+  background-color: var(--color-dark);
+  border: .1rem solid var(--color-grey);
+  border-radius: .5rem;
+  color: var(--text-color);
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-medium);
+  margin-bottom: 1.5rem;
+  padding: 1.2rem 1.4rem;
+}
+
+.form-inline .input {
+  flex: 1;
+  margin-bottom: 0;
+  min-width: 18rem;
+}
+
+.input-small {
+  flex: 0 0 9rem;
+  min-width: 9rem;
+}
+
+.input::placeholder {
+  color: var(--color-light-grey);
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  outline: none;
+}
+
+/* Buttons */
+
+.button {
+  align-self: flex-start;
+  background-color: var(--color-primary);
+  border: .2rem solid var(--color-primary);
+  border-radius: .5rem;
+  color: var(--color-white);
+  cursor: pointer;
+  font-family: var(--font-family-title);
+  font-size: var(--font-size-large);
+  font-weight: var(--font-weight-bold);
+  padding: 1rem 3rem;
+  transition-duration: var(--transition-duration);
+  transition-property: color, background-color;
+}
+
+.button:hover {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.button-small {
+  font-size: var(--font-size-small);
+  padding: .6rem 1.6rem;
+}
+
+.button-ghost {
+  background-color: transparent;
+  color: var(--color-primary);
+}
+
+.button-ghost:hover {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+}
+
+.link {
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  cursor: pointer;
+  font-family: var(--font-family-base);
+  font-size: var(--font-size-small);
+  padding: 0;
+  text-decoration: underline;
+}
