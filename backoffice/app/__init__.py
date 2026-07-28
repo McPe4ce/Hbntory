@@ -5,6 +5,7 @@ from app.auth.routes import auth_bp
 from app.admin.routes import admin_bp
 from app.stock.routes import stock_bp
 from app.public.routes import public_bp
+from app.products.routes import products_bp
 
 def create_app():
     """Creates the app, loads the config and binds it to the DB"""
@@ -15,6 +16,7 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(stock_bp)
     app.register_blueprint(public_bp)
+    app.register_blueprint(products_bp)
 
     @app.route("/")
     def backoffice_ui():

@@ -50,12 +50,12 @@ def seed():
         db.session.add_all([admin, user1, user2])
         db.session.commit()
  
-        # --- Stock de test (product_id = identifiants qui viendront de la Product API) ---
+        # --- Stock de test (product_id = SKUs réels du Product API / stub) ---
         stocks = [
-            Stock(branch_id=branch1.id, product_id="prod-001", quantity=50),
-            Stock(branch_id=branch1.id, product_id="prod-002", quantity=20),
-            Stock(branch_id=branch2.id, product_id="prod-001", quantity=15),
-            Stock(branch_id=branch2.id, product_id="prod-003", quantity=30),
+            Stock(branch_id=branch1.id, product_id="HB-LAP-1001", quantity=50),
+            Stock(branch_id=branch1.id, product_id="HB-MON-2101", quantity=20),
+            Stock(branch_id=branch2.id, product_id="HB-LGT-1801", quantity=15),
+            Stock(branch_id=branch2.id, product_id="HB-KEY-2003", quantity=30),
         ]
         db.session.add_all(stocks)
         db.session.commit()
