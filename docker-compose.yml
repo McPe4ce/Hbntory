@@ -1,3 +1,13 @@
+# Full Hbntory stack.
+#
+#   docker compose --profile stub up --build     <- stub Product API (no image needed)
+#   docker compose --profile real up --build     <- provided Product API (set PRODUCT_API_IMAGE)
+#
+# First run only, to create the admin / branches / demo stock:
+#   docker compose exec backoffice python seed.py
+#
+# Then: client page on http://localhost:8080, backoffice API on http://localhost:5000
+
 services:
   backoffice:
     build: ./backoffice
@@ -8,21 +18,54 @@ services:
       - backoffice_db:/app/instance
     environment:
       - FLASK_ENV=development
+      # Inside the network the MCP server is reachable by service name, not localhost
+      - PRODUCT_MCP_URL=http://product_mcp_server:8001
+      - SECRET_KEY=${SECRET_KEY:-dev-only-change-me}
+    depends_on:
+      - product_mcp_server
 
-  # --- Uncomment when product_mcp_server/ exists ---
-  # product_mcp_server:
-  #   build: ./product_mcp_server
-  #   ports:
-  #     - "8001:8001"
-  #   depends_on:
-  #     - product-api
+  product_mcp_server:
+    build: ./product_mcp_server
+    ports:
+      - "8001:8001"
+    environment:
+      # Both profiles publish the Product API under the alias `product-api`,
+      # so this value is the same either way.
+      - PRODUCT_API_BASE_URL=http://product-api:8000
 
-  # --- Provided external Product API container ---
-  # Replace `image:` with the actual image name given by the professor
-  # product-api:
-  #   image: <provided-product-api-image>
-  #   ports:
-  #     - "8000:8000"
+  # The Product API provided as a Docker image. Set PRODUCT_API_IMAGE in .env
+  # (see .env.example) before using this profile.
+  product-api-real:
+    image: ${PRODUCT_API_IMAGE:-set-PRODUCT_API_IMAGE-in-.env}
+    profiles: ["real"]
+    ports:
+      - "8000:8000"
+    networks:
+      default:
+        aliases:
+          - product-api
+
+  # Local stand-in used when the provided image is not available.
+  product-api-stub:
+    build: ./product_api_tests
+    profiles: ["stub"]
+    ports:
+      - "8000:8000"
+    networks:
+      default:
+        aliases:
+          - product-api
+
+  # Serves the static client page. It calls the backoffice on localhost:5000
+  # from the browser, so no extra wiring is needed here.
+  client_web:
+    image: nginx:1.27-alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./client_web:/usr/share/nginx/html:ro
+    depends_on:
+      - backoffice
 
 volumes:
   backoffice_db:
