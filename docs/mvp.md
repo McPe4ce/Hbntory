@@ -34,6 +34,13 @@ project [README](../README.md) for setup and API usage.
 - [x] Soft-delete users
 - [x] Admin cannot manage stock
 
+**Backoffice — Interface**
+
+- [x] Lightweight HTML/CSS/JS interface over the REST API
+- [x] Sign-in screen, with expired sessions returning to it
+- [x] The branch a common user operates on is stated in the header
+- [x] Views selected by role, with authorization still enforced server-side
+
 **Backoffice — Common users**
 
 - [x] Bound to exactly one branch

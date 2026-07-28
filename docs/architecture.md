@@ -42,9 +42,12 @@ The application services (system components).
 What each service is responsible for — and what it is **not**.
 
 - **Backoffice Service** — Authenticated web app. Manages users (admin) and branch stock
-  (common users) through SQLAlchemy. Reaches product data via the Product MCP Server, and
-  answers the Client Web Interface's product & stock queries.
-  *Not:* storing product details; calling the Product API directly.
+  (common users) through SQLAlchemy. Serves its own lightweight HTML/CSS/JS interface from
+  the same origin as its REST API, so the session cookie needs no CORS handling. Reaches
+  product data via the Product MCP Server, and answers the Client Web Interface's product
+  & stock queries.
+  *Not:* storing product details; calling the Product API directly; relying on the
+  interface to enforce permissions — authorization lives in the route decorators.
 
 - **Relational Database** — Persists users, branches, and stock quantities keyed by `product_id`.
   *Not:* product name / description / price / image / metadata.

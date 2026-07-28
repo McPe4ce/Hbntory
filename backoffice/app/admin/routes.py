@@ -54,6 +54,15 @@ def create_user():
     return jsonify(_user_json(user)), 201
 
 
+@admin_bp.route("/branches", methods=["GET"])
+@admin_required
+def list_branches():
+    """Branches available when assigning a user, so the interface can offer a
+    choice instead of asking an admin to type a UUID."""
+    branches = db.session.execute(db.select(Branch)).scalars().all()
+    return jsonify([{"id": b.id, "branch_name": b.branch_name} for b in branches]), 200
+
+
 @admin_bp.route("/users", methods=["GET"])
 @admin_required
 def list_users():

@@ -142,7 +142,7 @@ The script is idempotent; running it again is harmless.
 | Service | URL |
 |---|---|
 | Client Web Interface | <http://localhost:8080> |
-| Backoffice API | <http://localhost:5000> |
+| Backoffice interface and API | <http://localhost:5000> |
 | Product MCP REST bridge | <http://localhost:8001> |
 | Product API | <http://localhost:8000> |
 
@@ -245,6 +245,7 @@ database on every request, so deactivating a user takes effect immediately.
 |---|---|---|---|
 | `POST` | `/auth/login` | — | Body `{email, password}`. Sets the session cookie. |
 | `POST` | `/auth/logout` | — | Clears the session cookie. |
+| `GET` | `/auth/me` | any active user | Current user: `email`, `is_admin`, `branch_id`, `branch_name`. |
 
 ```bash
 curl -c cookies.txt -X POST http://localhost:5000/auth/login \
@@ -258,6 +259,7 @@ Common users receive `403` on all of these.
 
 | Method | Path | Description |
 |---|---|---|
+| `GET` | `/admin/branches` | List branches, so a user can be assigned to one by name. |
 | `GET` | `/admin/users` | List all users, active and deactivated. |
 | `POST` | `/admin/users` | Create a common user. Body `{email, password, branch_id}`. |
 | `PATCH` | `/admin/users/<user_id>` | Change `branch_id` and/or `password`. |
@@ -314,6 +316,30 @@ Both are also exposed as MCP tools — `list_products` and
 `get_product_details` — in `product_mcp_server/server.py`.
 
 ---
+
+## Backoffice interface
+
+A lightweight HTML/CSS/JS interface at <http://localhost:5000>, served by Flask
+itself. Because it shares the API's origin, the session cookie travels with every
+request and no CORS configuration is involved.
+
+One page with three views, selected by role:
+
+| View | Who sees it | What it does |
+|---|---|---|
+| Sign in | anonymous | Email and password, then routes to the right view. |
+| Stock | common users | Lists the branch's stock, adds and removes quantities. |
+| Users | admin | Lists users with their branch and status, creates users, deactivates them. |
+
+The header always shows who is signed in and the **name of the branch** they are
+operating on, so the scope of any stock change is unambiguous.
+
+Choosing the view by role is a convenience only. Authorization is enforced by the
+backend route decorators, so hiding a control is never what keeps a user out of an
+endpoint — a common user who calls an admin route directly still receives `403`.
+
+Expired or missing sessions are detected centrally: any `401` returns the user to
+the sign-in view.
 
 ## Client Web Interface
 
@@ -427,6 +453,17 @@ curl -s -X POST $B/api/query -H 'Content-Type: application/json' \
   -d '{"question":"details about HB-LAP-1001"}'           # -> 503, clear message
 docker compose start product_mcp_server
 ```
+
+**Backoffice interface** — open <http://localhost:5000> and check that:
+
+- signing in as the admin shows the Users view, with branches listed by name;
+- signing in as a common user shows the Stock view, with the branch name in the
+  header;
+- adding and removing stock updates the table, and removing more than available
+  shows the error returned by the API;
+- creating a user with a weak password or a duplicate email shows the error;
+- deactivating a user moves them to `Deactivated` and they can no longer sign in;
+- logging out returns to the sign-in view.
 
 **Client Web Interface** — open <http://localhost:8080> and click each of the
 four example buttons. Each returns a coherent answer built from live catalog

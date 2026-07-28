@@ -1,5 +1,6 @@
-from flask import Blueprint, request, jsonify, current_app, make_response
+from flask import Blueprint, request, jsonify, current_app, make_response, g
 from datetime import datetime, timezone
+from app.auth.decorators import login_required
 from app.models import User
 from app.extensions import db
 import jwt
@@ -41,5 +42,24 @@ def logout():
     resp = make_response(jsonify({"message": "You logged out"}))
     resp.delete_cookie("access_token", path="/", samesite="Lax")
     return resp
+
+
+@auth_bp.route("/me", methods=["GET"])
+@login_required
+def me():
+    """Who is logged in, and which branch they operate on.
+
+    The interface needs the branch *name*, not just its id, to state clearly
+    which branch the user is acting on.
+    """
+    user = g.current_user
+
+    return jsonify({
+        "id": user.id,
+        "email": user.email,
+        "is_admin": user.is_admin,
+        "branch_id": user.branch_id,
+        "branch_name": user.branch.branch_name if user.branch else None,
+    }), 200
 
 

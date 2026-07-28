@@ -15,4 +15,11 @@ def create_app():
     app.register_blueprint(admin_bp)
     app.register_blueprint(stock_bp)
     app.register_blueprint(public_bp)
+
+    @app.route("/")
+    def backoffice_ui():
+        """The Backoffice interface, served from the same origin as the API so
+        the session cookie is sent without any CORS handling."""
+        return app.send_static_file("index.html")
+
     return app
