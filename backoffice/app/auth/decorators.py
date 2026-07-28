@@ -34,7 +34,7 @@ def login_required(func):
         user_id = _user_id_from_token()
         user = db.session.get(User, user_id)
         if user is None or not user.is_active:
-            return abort(403)
+            return abort(401)
         g.current_user = user
         return func(*args, **kwargs)
     return wrapped
@@ -46,8 +46,10 @@ def admin_required(func):
     def wrapped(*args, **kwargs):
         user_id = _user_id_from_token()
         user = db.session.get(User, user_id)
-        if user is None or not user.is_admin or not user.is_active:
-            abort(403)
+        if user is None or not user.is_active:
+            abort(401)
+        if not user.is_admin:
+            abort(401)
         g.current_user = user
         return func(*args, **kwargs)
     return wrapped
@@ -60,7 +62,9 @@ def common_user_required(func):
         user_id = _user_id_from_token()
         user = db.session.get(User, user_id)
 
-        if user is None or user.is_admin or not user.is_active:
+        if user is None or not user.is_active:
+            abort(403)
+        if not user.is_admin:
             abort(403)
         g.current_user = user
         return func(*args, **kwargs)

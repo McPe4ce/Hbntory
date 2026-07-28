@@ -14,6 +14,9 @@ def login():
     email = data.get("email")
     password = data.get("password")
 
+    if not isinstance(email, str) or not isinstance(password, str):
+        return jsonify({"error": "Email or Password is wrong"}), 401
+    
     user = db.session.execute(
         db.select(User).filter_by(email=email)
     ).scalar_one_or_none()
