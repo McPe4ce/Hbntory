@@ -1,61 +1,105 @@
 # Minimum Viable Product (MVP)
 
-> Task 3 — Define the MVP. It must include all mandatory requirements and avoid unnecessary extras.
-> A clear MVP reduces the risk of incomplete integration at the end of the project.
+Scope definition for HBntory. The MVP covers every mandatory requirement and
+deliberately avoids extras, so that integration is complete rather than broad and
+half-finished.
+
+Companion documents: [`architecture.md`](architecture.md) for the system design,
+[`decisions.md`](decisions.md) for the reasoning behind each choice, and the
+project [README](../README.md) for setup and API usage.
 
 ---
 
-## 1. Implement First (mandatory)
+## 1. Core scope
 
 **Data & database**
-- [ ] SQLAlchemy models: `User`, `Branch`, `Stock`
-- [ ] Stock keyed by `branch_id` + `product_id` + `quantity` (never negative)
-- [ ] No product details stored locally (only `product_id`)
+
+- [x] SQLAlchemy models: `User`, `Branch`, `Stock`
+- [x] Stock keyed by `branch_id` + `product_id` + `quantity`, never negative
+- [x] No product details stored locally — only `product_id`
+- [x] Idempotent seed script: admin, branches, common users, sample stock
 
 **Authentication & authorization**
-- [ ] Login required for the Backoffice
-- [ ] Passwords hashed (no plain text)
-- [ ] Roles enforced on the backend, not only in the UI
+
+- [x] Login required for the Backoffice
+- [x] Passwords hashed with scrypt — no plain text anywhere, including the seed
+- [x] Roles enforced in backend route logic, not by hiding controls
+- [x] Deactivated users rejected at login and on every subsequent request
 
 **Backoffice — Admin**
-- [ ] List users
-- [ ] Create common users and assign them to a branch
-- [ ] Modify users, change password, change branch
-- [ ] Soft-delete users
-- [ ] Admin does **not** manage stock
+
+- [x] List users
+- [x] Create common users and assign them to an existing branch
+- [x] Modify users: change password, change branch
+- [x] Soft-delete users
+- [x] Admin cannot manage stock
 
 **Backoffice — Common users**
-- [ ] Bound to exactly one branch
-- [ ] Add / remove / consult stock on their own branch (validated quantity)
-- [ ] List products currently in stock for their branch
-- [ ] Cannot manage users or act on another branch
+
+- [x] Bound to exactly one branch
+- [x] Add / remove / consult stock on their own branch, with validated quantities
+- [x] List products currently in stock for their branch
+- [x] Cannot manage users or act on another branch
 
 **Product data**
-- [ ] Consume the external Product API (list products, get details)
-- [ ] Product info reached through the Product MCP Server
+
+- [x] Consume the external Product API: list products, get details
+- [x] All product access routed through the Product MCP Server
+- [x] Catalog pagination handled transparently
+- [x] External API failures surfaced as explicit, distinguishable results
 
 **Client Web Interface**
-- [ ] Simple public page for anonymous product & stock queries
 
-## 2. Leave for Later
+- [x] Public page for anonymous product & stock queries
+- [x] Loading state and error handling for network and server failures
+- [x] Realistic worked examples covering each supported question type
 
-Useful, but not required for a working first version.
+**Integration**
 
-- [ ] Polished Swagger / API documentation
-- [ ] Improved UI (styling, filtering, pagination)
-- [ ] List products in stock with richer product details
-
-## 3. Optional — Only if Time Allows
-
-Nice-to-have, attempted only after the MVP is complete.
-
-- [ ] View stock of **other** branches
-- [ ] Multi-branch query: "to buy 3× X, 2× Y, 4× Z, which branch(es) should I visit?"
+- [x] All services start together under Docker Compose
+- [x] Services address each other by name on a shared network
+- [x] Database persisted in a named volume across rebuilds
 
 ---
 
-### Scope Boundary
+## 2. Deferred
 
-> The MVP stops at a working Backoffice (admin user management + common-user stock operations,
-> with backend-enforced auth) served by product data from the external API. Cross-branch views
-> and multi-branch optimization are out of the MVP scope.
+Useful, but outside the MVP.
+
+- Swagger / OpenAPI specification for the REST API
+- Product search and filtering for Backoffice users
+- Richer stock listings that inline full product details
+- UI styling, pagination and filtering beyond the functional minimum
+
+---
+
+## 3. Descoped for this phase
+
+- **AI Query Service.** Confirmed with the professor. The Product MCP Server
+  remains mandatory and is fully implemented; the LLM agent that would consume it
+  is deferred. `POST /api/query` is answered directly by the Backoffice against a
+  stable contract, so an agent can be substituted later without touching the
+  Client Web Interface. See Decision 3 in [`decisions.md`](decisions.md).
+
+---
+
+## 4. Optional extensions
+
+Attempted only once the MVP is complete.
+
+- [x] Multi-branch query: "to buy 3× X and 2× Y, which branch should I visit?"
+- [ ] Viewing the stock of other branches from the Backoffice
+
+The multi-branch query was delivered ahead of scope: the client answers shopping
+lists by first looking for a single branch holding everything, then falling back
+to a per-branch breakdown.
+
+---
+
+## Scope boundary
+
+The MVP is a working Backoffice — admin user management and common-user stock
+operations, both under backend-enforced authorization — served by product data
+read live from the external API through the MCP server, plus a public query page
+for anonymous users. Cross-branch stock visibility from the Backoffice sits
+outside that boundary.

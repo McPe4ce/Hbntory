@@ -10,8 +10,9 @@
 **Options:** REST + HTML/CSS/JS · or · Server-Side Rendering (SSR)
 
 - **Chosen:** REST + HTML/CSS/JS
-- **Benefit:** Clear front/back separation; the REST API (documented with Swagger) can be reused
-  by other services and tested independently.
+- **Benefit:** Clear front/back separation; the REST API is documented endpoint by endpoint in
+  the project README and can be reused by other services and tested independently — the public
+  Client Web Interface already consumes it without sharing any rendering code.
 - **Trade-off / limitation:** More client-side JS to write than server-rendered templates, and
   weaker SEO / first-load — irrelevant for an internal authenticated interface.
 
@@ -29,9 +30,49 @@
 
 **Question:** How does the AI Query Service communicate with the MCP tools?
 
-- **Chosen:** TBD
-- **Benefit:** …
-- **Trade-off / limitation:** …
+**Options:** build the AI agent now and have it call the MCP tools · or · defer the
+agent and answer client questions directly from the Backoffice
+
+- **Chosen:** Defer the AI Query Service for this phase — confirmed with the
+  professor, who formally descoped the AI agent and the Client Interface
+  requirements built on top of it. The **Product MCP Server remains mandatory and
+  is fully implemented**; what is deferred is the LLM agent that would consume it.
+  In its place, `app/public/query_engine.py` resolves the four required question
+  types by keyword matching, combining local stock with live catalog data pulled
+  through the MCP server. The Client Web Interface calls a stable
+  `POST /api/query` contract, so substituting an agent behind it later is an
+  internal change with no impact on the page.
+- **Benefit:** The team's effort went into the parts that are actually graded and
+  genuinely hard — authorization, branch isolation, the MCP bridge and the
+  external API integration — instead of an agent that was explicitly not
+  required. The keyword engine is deterministic and testable, and it never
+  fabricates an answer: an unrecognised question returns a help message and an
+  unknown identifier is reported as unknown, which is more than an unsupervised
+  LLM would guarantee.
+- **Trade-off / limitation:** Question understanding is literal. Phrasings outside
+  the four supported intents fall through to the help message, and there is no
+  conversational memory or paraphrase tolerance. The engine also carries product
+  vocabulary in code rather than learning it, so adding an intent means editing
+  `query_engine.py`.
+
+## Decision 3b — Backoffice ↔ Product MCP Server transport
+
+**Options:** speak the MCP protocol directly from Flask · or · call a thin REST
+wrapper served by the MCP server
+
+- **Chosen:** REST wrapper. `product_mcp_server/rest_api.py` exposes
+  `GET /products` and `GET /products/<sku>` over the *same* client logic that backs
+  the MCP tools in `server.py`, so both interfaces share one implementation in
+  `product_api_client.py` and cannot drift apart.
+- **Benefit:** MCP transport is session-oriented and asynchronous; a synchronous
+  Flask request handler would need an event loop and session lifecycle management
+  per request to use it. Plain HTTP costs nothing, is trivially testable with
+  `curl`, and fails in ways Flask already knows how to handle. The MCP tools stay
+  the canonical interface for any future MCP-speaking client, including the
+  deferred AI agent.
+- **Trade-off / limitation:** Two entry points to maintain, and the MCP tool layer
+  is not exercised by the Backoffice at runtime — so it needs testing in its own
+  right rather than being covered incidentally.
 
 ## Decision 4 — Authentication (Backoffice)
 
@@ -102,7 +143,8 @@
 |---|---|---|---|
 | Backoffice | REST + HTML/CSS/JS | Reusable, documented API; front/back separation | More client-side JS to write |
 | Client Web Interface | REST | Independent questions; no persistent connection | No streaming / real-time push |
-| AI Query ↔ MCP | *TBD* | *TBD* | *TBD* |
+| AI Query ↔ MCP | Deferred (professor-confirmed); keyword engine answers directly | Effort spent on required, harder work; deterministic and never fabricates | Literal understanding; new intents need code changes |
+| Backoffice ↔ MCP | Thin REST wrapper over shared client logic | No async/session handling in a sync Flask handler; one implementation | Two entry points; MCP tool layer needs its own tests |
 | Auth (Backoffice) | JWT in cookie (`{user_id, exp}`) | Standard signed token + real expiry; DB still checked | Extra dep + token lifecycle; no pre-expiry revocation |
 | Password storage | scrypt (Werkzeug default) | Slow, memory-hard, auto-salted — unlike fast unsalted SHA256 | Real CPU/memory cost per login; untuned defaults |
 | Authorization | Backend decorators, role read from DB | Safe against direct API calls; revocation is instant | One DB read per request; scope still checked in-route |
