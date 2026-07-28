@@ -49,7 +49,7 @@ def admin_required(func):
         if user is None or not user.is_active:
             abort(401)
         if not user.is_admin:
-            abort(401)
+            abort(403)
         g.current_user = user
         return func(*args, **kwargs)
     return wrapped
@@ -63,8 +63,8 @@ def common_user_required(func):
         user = db.session.get(User, user_id)
 
         if user is None or not user.is_active:
-            abort(403)
-        if not user.is_admin:
+            abort(401)
+        if user.is_admin:
             abort(403)
         g.current_user = user
         return func(*args, **kwargs)
